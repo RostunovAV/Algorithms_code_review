@@ -1,6 +1,5 @@
 #include <iostream>
 
-using namespace std;
 const int kKsize = 1e5 + 3;
 int arr[kKsize];
 
@@ -19,22 +18,22 @@ bool BinarySearch(int* begin, const int* end, int target) {
 
 int main() {
   int num;
-  cin >> num;
+  std::cin >> num;
 
   for (int i = 0; i < num; i++) {
-    cin >> arr[i];
+    std::cin >> arr[i];
   }
 
   int questions;
-  cin >> questions;
+  std::cin >> questions;
 
   for (int i = 0; i < questions; i++) {
     int left, right, target;
-    cin >> left >> right >> target;
+    std::cin >> left >> right >> target;
     if (BinarySearch(&arr[left], &arr[right - 1], target)) {
-      cout << "YES\n";
+      std::cout << "YES\n";
     } else {
-      cout << "NO\n";
+      std::cout << "NO\n";
     }
   }
   return 0;
