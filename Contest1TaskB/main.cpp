@@ -1,19 +1,22 @@
 #include <iostream>
 
-const int kKsize = 1e5 + 3;
-int arr[kKsize];
-
-int main() {
-  int num, answer = 0;
+int CalcAns(int sz) {
+  int answer = 0, num;
   std::cin >> num;
-
-  for (int i = 0; i < num; i++) {
-    std::cin >> arr[i];
-    if (i != 0 && arr[i - 1] > arr[i]) {
+  for (int i = 1; i < sz; i++) {
+    int next_num;
+    std::cin >> next_num;
+    if (i != 0 && num > next_num) {
       answer = i;
     }
+    num = next_num;
   }
+  return answer;
+}
 
-  std::cout << answer;
+int main() {
+  int sz;
+  std::cin >> sz;
+  std::cout << CalcAns(sz);
   return 0;
 }
