@@ -1,88 +1,159 @@
 #include <algorithm>
 #include <iostream>
 
-const int kSize = 2e5 + 3, kINF = 1e9 + 7;
-int left_stack[kSize], right_stack[kSize];
-int min_left[kSize], min_right[kSize];
-
-void Push(int num, int& ind_right) {
-  ind_right++;
-  right_stack[ind_right] = num;
-  if (ind_right > 0) {
-    min_right[ind_right] = std::min(min_right[ind_right - 1], num);
-  } else {
-    min_right[ind_right] = num;
-  }
-  std::cout << "ok\n";
-}
-
-void Pop(int& ind_left, int& ind_right) {
-  if (ind_left == -1 && ind_right == -1) {
-    std::cout << "error\n";
-    return;
-  }
-
-  if (ind_left == -1) {
-    while (ind_right > -1) {
-      ind_left++;
-      int num = right_stack[ind_right];
-      left_stack[ind_left] = num;
-      if (ind_left > 0) {
-        min_left[ind_left] = std::min(min_left[ind_left - 1], num);
-      } else {
-        min_left[ind_left] = num;
+class Stack {
+  struct Node {
+    int val;
+    int min;
+    int max;
+    Node* prev = nullptr;
+    Node(int new_val, Node* par) {
+      val = new_val;
+      min = val;
+      max = val;
+      prev = par;
+      if (prev != nullptr) {
+        min = std::min(min, prev->min);
+        max = std::max(max, prev->max);
       }
-      ind_right--;
+    }
+  };
+
+ public:
+  Stack() : last_(nullptr) {}
+
+  ~Stack() {
+    while (last_ != nullptr) {
+      PopLast();
     }
   }
-  std::cout << left_stack[ind_left] << '\n';
-  ind_left--;
-}
 
-void Front(int& ind_left, int& ind_right) {
-  if (ind_right == -1 && ind_left == -1) {
-    std::cout << "error\n";
-    return;
-  }
-  if (ind_left != -1) {
-    std::cout << left_stack[ind_left] << '\n';
-    return;
-  }
-  std::cout << right_stack[0] << '\n';
-}
+  void Push(int val) { PushLast(val); }
 
-void Size(int& ind_left, int& ind_right) {
-  int res = ind_left + ind_right + 2;
-  std::cout << res << '\n';
-}
-
-void Clear(int& ind_left, int& ind_right) {
-  ind_left = -1;
-  ind_right = -1;
-  std::cout << "ok\n";
-}
-
-void Min(int& ind_left, int& ind_right) {
-  if (ind_left == -1 && ind_right == -1) {
-    std::cout << "error\n";
-    return;
-  }
-  int res = kINF;
-  if (ind_left != -1) {
-    res = std::min(res, min_left[ind_left]);
-  }
-  if (ind_right != -1) {
-    res = std::min(res, min_right[ind_right]);
+  int Pop() {
+    if (sz == 0) {
+      return 0;
+    }
+    return PopLast();
   }
 
-  std::cout << res << '\n';
-}
+  int GetMin() {
+    if (last_ == nullptr) {
+      return kINF;
+    }
+    return last_->min;
+  }
+
+  int GetMax() {
+    if (last_ == nullptr) {
+      return -kINF;
+    }
+    return last_->max;
+  }
+
+  int sz = 0;
+  int front = 0;
+  int back = 0;
+
+ private:
+  void PushLast(int val) {
+    Node* cur = new Node(val, last_);
+    last_ = cur;
+    if (sz == 0) {
+      front = val;
+    }
+    back = val;
+    ++sz;
+  }
+
+  int PopLast() {
+    Node* cur = last_;
+    int res = last_->val;
+    last_ = last_->prev;
+    delete cur;
+    --sz;
+    if (sz > 0) {
+      back = last_->val;
+    }
+    return res;
+  }
+
+  Node* last_;
+  const int kINF = 1e9 + 7;
+};
+
+class Queue {
+ public:
+  void Clear() {
+    while (sz > 0) {
+      Pop();
+    }
+    std::cout << "ok\n";
+  }
+
+  void Enqueue(int val) {
+    Push(val);
+    std::cout << "ok\n";
+  }
+
+  void Dequeue() {
+    if (sz == 0) {
+      std::cout << "error\n";
+      return;
+    }
+    std::cout << Pop() << '\n';
+  }
+
+  int Size() { return sz; }
+
+  void GetMin() {
+    if (sz == 0) {
+      std::cout << "error\n";
+      return;
+    }
+    int res = std::min(left_.GetMin(), right_.GetMin());
+    std::cout << res << '\n';
+  }
+
+  void Front() {
+    if (sz == 0) {
+      std::cout << "error\n";
+      return;
+    }
+    if (right_.sz > 0) {
+      std::cout << right_.back << '\n';
+      return;
+    }
+    std::cout << left_.front << '\n';
+  }
+
+  int sz = 0;
+
+ private:
+  void Push(int val) {
+    left_.Push(val);
+    ++sz;
+  }
+
+  int Pop() {
+    --sz;
+    if (right_.sz > 0) {
+      return right_.Pop();
+    }
+    while (left_.sz > 0) {
+      right_.Push(left_.Pop());
+    }
+    return right_.Pop();
+  }
+
+  Stack left_;
+  Stack right_;
+};
 
 int main() {
   int questions;
   std::cin >> questions;
-
-  int ind_left = -1, ind_right = -1;
+  Queue tmp;
   for (int i = 0; i < questions; i++) {
     std::string ask;
     std::cin >> ask;
@@ -90,19 +161,23 @@ int main() {
     if (ask == "enqueue") {
       int number;
       std::cin >> number;
-      Push(number, ind_right);
-    } else if (ask == "dequeue") {
-      Pop(ind_left, ind_right);
-    } else if (ask == "front") {
-      Front(ind_left, ind_right);
-    } else if (ask == "size") {
-      Size(ind_left, ind_right);
-    } else if (ask == "clear") {
-      Clear(ind_left, ind_right);
-    } else if (ask == "min") {
-      Min(ind_left, ind_right);
+      tmp.Enqueue(number);
+    }
+    if (ask == "dequeue") {
+      tmp.Dequeue();
+    }
+    if (ask == "front") {
+      tmp.Front();
+    }
+    if (ask == "size") {
+      std::cout << tmp.Size() << '\n';
+    }
+    if (ask == "clear") {
+      tmp.Clear();
+    }
+    if (ask == "min") {
+      tmp.GetMin();
     }
   }
-
   return 0;
 }
